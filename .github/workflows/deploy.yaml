@@ -1,0 +1,59 @@
+name: Deploy Terraform Component
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  id-token: write
+  contents: read
+
+env:
+  TF_VERSION: "1.12.2"
+  TF_WORKING_DIR: "./infrastructure"
+  
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+        - name: Checkout
+          uses: actions/checkout@v4
+
+        - name: Set up Terraform
+          uses: hashicorp/setup-terraform@v3
+          with:
+            terraform_version: ${{ env.TF_VERSION }}
+
+        - name: Configure AWS Credentials
+          uses: aws-actions/configure-aws-credentials@v5.0.0
+          with:
+            role-to-assume: arn:aws:iam::${{ vars.AWS_ACCOUNT_ID }}:role/github-actions-deploy-role
+            role-session-name: github-terraform-session
+            aws-region: us-west-2
+
+        - name: Init Terraform Component
+          run: terraform init
+          working-directory: ${{ env.TF_WORKING_DIR }}
+
+        - name: Terraform Format Check
+          run: terraform fmt -check
+          working-directory: ${{ env.TF_WORKING_DIR }}
+
+        - name: Terraform Validate
+          run: terraform validate
+          working-directory: ${{ env.TF_WORKING_DIR }}
+
+        - name: Terraform Plan
+          run: terraform plan -out=tfplan.binary
+          working-directory: ${{ env.TF_WORKING_DIR }}
+
+        - name: Upload Plan Artifact
+          uses: actions/upload-artifact@v4
+          with:
+            name: terraform-plan
+            path: ${{ env.TF_WORKING_DIR }}/tfplan.binary
+
+        - name: Terraform Apply
+          if: github.ref == 'refs/heads/main'
+          run: terraform apply -auto-approve tfplan.binary
+          working-directory: ${{ env.TF_WORKING_DIR }}
