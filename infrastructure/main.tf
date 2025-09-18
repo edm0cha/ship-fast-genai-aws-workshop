@@ -3,13 +3,14 @@ module "dynamo" {
   name   = "${var.project_name}-trips"
 }
 
-module "lambda" {
-  source            = "./modules/lambda"
-  function_name     = "${var.project_name}-trips"
-  source_file       = "${path.root}/../backend/searchLambda/lambda.py"
-  handler           = "lambda.lambda_handler"
-  dynamo_table_name = module.dynamo.name
-  dynamo_table_arn  = module.dynamo.arn
+module "searchLambda" {
+  source                   = "./modules/lambda"
+  function_name            = "${var.project_name}-search-lambda"
+  source_file              = "${path.root}/../backend/searchLambda/lambda.py"
+  handler                  = "lambda.lambda_handler"
+  dynamo_table_name        = module.dynamo.name
+  dynamo_table_arn         = module.dynamo.arn
+  endpoint_allowed_methods = ["GET"]
 }
 
 # module "static" {
