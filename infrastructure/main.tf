@@ -13,6 +13,17 @@ module "searchLambda" {
   endpoint_allowed_methods = ["GET"]
 }
 
+
+module "itineraryLambda" {
+  source                   = "./modules/lambda"
+  function_name            = "${var.project_name}-itinerary-lambda"
+  source_file              = "${path.root}/../backend/itineraryLambda/lambda.py"
+  handler                  = "lambda.lambda_handler"
+  dynamo_table_name        = module.dynamo.name
+  dynamo_table_arn         = module.dynamo.arn
+  endpoint_allowed_methods = ["GET", "POST"]
+}
+
 # module "static" {
 #   source       = "./modules/static"
 #   name         = var.project_name
