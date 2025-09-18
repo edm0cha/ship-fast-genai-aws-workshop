@@ -5,15 +5,12 @@ data "archive_file" "lambda" {
 }
 
 resource "aws_lambda_function" "this" {
-  filename      = data.archive_file.lambda.output_path
-  function_name = var.function_name
-  role          = aws_iam_role.lambda_execution_role.arn
-  handler       = var.handler
-  runtime       = var.runtime
-  timeout       = var.timeout
-  layers = [
-    "arn:aws:lambda:us-east-1:131578276461:layer:genai-langchain-genai-catalyst-hackathon:3"
-  ]
+  filename         = data.archive_file.lambda.output_path
+  function_name    = var.function_name
+  role             = aws_iam_role.lambda_execution_role.arn
+  handler          = var.handler
+  runtime          = var.runtime
+  timeout          = var.timeout
   source_code_hash = data.archive_file.lambda.output_base64sha256
   memory_size      = var.memory_size
   environment {
