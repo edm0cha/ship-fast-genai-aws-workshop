@@ -1,4 +1,5 @@
-import { useEffect, useState } from "react"
+import { useEffect, useState, useCallback } from "react"
+import debounce from "lodash.debounce"
 
 type Props = {
     flight: any
@@ -40,9 +41,14 @@ const ItineraryModal = ({ flight, onClose }: Props) => {
         }
     }
 
+    const debouncedFetch = useCallback(debounce(generateItinerary, 500), [])
+
     useEffect(() => {
-        generateItinerary()
-    }, [])
+        setItinerary(null)
+        debouncedFetch()
+    }, [adventurousness])
+
+
 
     return (
         <div className="fixed inset-0 bg-black bg-opacity-40 flex justify-center items-center z-50 px-4">

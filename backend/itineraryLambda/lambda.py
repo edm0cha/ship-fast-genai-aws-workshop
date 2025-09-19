@@ -40,7 +40,7 @@ def lambda_handler(event, context):
                         "content": prompt
                     }
                 ],
-                "max_tokens": 800,
+                "max_tokens": 1200,
                 "temperature": 0.7
             })
         )
@@ -75,20 +75,21 @@ from {start_date} to {end_date}. Their adventurousness level is {adventurousness
 Create a JSON itinerary where each day includes:
 - day (number),
 - title (short summary),
-- description (1–2 sentences),
-- highlights (list of attractions or activities)
+- description (1 sentence max)
+- highlights (1–3 short phrases, list of attractions or activities)
 
-Respond ONLY with a valid JSON array. No markdown, no explanation.
+Keep output concise. Respond ONLY with a valid JSON array. No markdown, no explanation.
 """
 
 def extract_json_from_text(output):
     try:
         start = output.find("[")
         end = output.rfind("]") + 1
-        return json.loads(output[start:end])
+        json_str = output[start:end]
+        return json.loads(json_str)
     except Exception as e:
-        logger.warning("Failed to extract JSON from model output.")
-        raise ValueError("Model response could not be parsed as valid JSON.")
+        logger.warning("Claude output was cut off or malformed.")
+        return fallback_itinerary()
 
 def fallback_itinerary():
     return [
