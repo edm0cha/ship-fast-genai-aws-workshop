@@ -12,17 +12,6 @@ resource "aws_cloudfront_distribution" "s3_distribution" {
     origin_access_control_id = aws_cloudfront_origin_access_control.default.id
   }
 
-  origin {
-    domain_name = replace(replace(var.function_url, "https://", ""), "/", "")
-    origin_id   = "${var.name}-lambda"
-    custom_origin_config {
-      http_port              = 80
-      https_port             = 443
-      origin_protocol_policy = "https-only"
-      origin_ssl_protocols   = ["TLSv1.2"]
-    }
-  }
-
   enabled             = true
   is_ipv6_enabled     = true
   default_root_object = "index.html"
@@ -42,21 +31,6 @@ resource "aws_cloudfront_distribution" "s3_distribution" {
     min_ttl                = 0
     default_ttl            = 3600
     max_ttl                = 86400
-  }
-
-  ordered_cache_behavior {
-    path_pattern               = "/generate-itinerary"
-    allowed_methods            = ["GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS"]
-    cached_methods             = ["GET", "HEAD", "OPTIONS"]
-    compress                   = true
-    target_origin_id           = "${var.name}-lambda"
-    viewer_protocol_policy     = "redirect-to-https"
-    min_ttl                    = 0
-    default_ttl                = 0
-    max_ttl                    = 0
-    origin_request_policy_id   = data.aws_cloudfront_origin_request_policy.all_viewer_except_host_header.id
-    cache_policy_id            = data.aws_cloudfront_cache_policy.managed_caching_disabled.id
-    response_headers_policy_id = data.aws_cloudfront_response_headers_policy.simple_cors.id
   }
 
   price_class = "PriceClass_200"

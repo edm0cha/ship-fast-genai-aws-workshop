@@ -42,7 +42,6 @@ module "apigateway" {
 }
 
 module "static" {
-  source       = "./modules/static"
-  name         = var.project_name
-  function_url = module.lambda.function_url
+  source = "./modules/static"
+  name   = var.project_name
 }
