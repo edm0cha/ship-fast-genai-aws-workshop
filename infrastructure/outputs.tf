@@ -2,6 +2,6 @@
 #   value = module.static.domain_name
 # }
 
-output "search_lambda_url" {
-  value = module.searchLambda.function_url
+output "api_gateway_url" {
+  value = module.apigateway.api_endpoint
 }
