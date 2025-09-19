@@ -40,7 +40,7 @@ def lambda_handler(event, context):
                         "content": prompt
                     }
                 ],
-                "max_tokens": 1200,
+                "max_tokens": 2400,
                 "temperature": 0.7
             })
         )
@@ -76,7 +76,7 @@ Create a JSON itinerary where each day includes:
 - day (number),
 - title (short summary),
 - description (1 sentence max)
-- highlights (1–3 short phrases, list of attractions or activities)
+- highlights (list of attractions or activities in 1–2 short phrases)
 
 Keep output concise. Respond ONLY with a valid JSON array. No markdown, no explanation.
 """
