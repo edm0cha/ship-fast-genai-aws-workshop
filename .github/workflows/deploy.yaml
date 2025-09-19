@@ -31,6 +31,14 @@ jobs:
             role-session-name: github-terraform-session
             aws-region: us-west-2
 
+        - name: 📦 Install Frontend Dependencies
+          working-directory: frontend
+          run: yarn install
+
+        - name: 🛠️ Build Frontend
+          working-directory: frontend
+          run: yarn build
+
         - name: Init Terraform Component
           run: terraform init
           working-directory: ${{ env.TF_WORKING_DIR }}
