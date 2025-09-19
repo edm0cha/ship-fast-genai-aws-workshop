@@ -15,9 +15,9 @@ A simple flight booking web app where users can:
 
 ## 🧱 Tech Stack
 - **Frontend:** React + Vite + TypeScript
-- **Backend:** AWS Lambda (Node.js / TypeScript)
+- **Backend:** AWS Lambda (Python)
 - **API Gateway** (REST)
-- **Bedrock** (for itinerary generation)
+- **Bedrock** (Claude 3 via Messages API)
 - **CI/CD:** GitHub Actions
 - **Infrastructure:** Terraform (S3, Lambda, API Gateway, IAM)
 
@@ -27,10 +27,25 @@ A simple flight booking web app where users can:
 ```
 genai-flight-app/
 ├── frontend/                  # React app (Vite)
+│   ├── public/
+│   ├── src/
+│   │   ├── components/
+│   │   │   ├── FlightSearchForm.tsx
+│   │   │   ├── FlightResults.tsx
+│   │   │   ├── ItineraryModal.tsx
+│   │   └── App.tsx
+│   ├── package.json
+│   └── vite.config.ts
 ├── backend/
-│   ├── searchLambda/         # Handles flight search
-│   └── itineraryLambda/      # Generates itineraries using Bedrock
+│   ├── searchLambda/         # Handles flight search (Python)
+│   │   └── handler.py
+│   └── itineraryLambda/      # Generates itineraries using Bedrock Claude 3 (Python)
+│       └── handler.py
 ├── infrastructure/           # Terraform for AWS resources
+│   └── terraform/
+│       ├── main.tf
+│       ├── variables.tf
+│       └── outputs.tf
 ├── .github/workflows/        # CI/CD pipeline
 └── README.md
 ```
@@ -65,6 +80,12 @@ terraform init
 terraform apply
 ```
 
+This will provision:
+- S3 bucket to host the frontend
+- Two Lambda functions (search + itinerary)
+- API Gateway with two endpoints
+- IAM roles with least-privilege policies
+
 ### 5. CI/CD Pipeline
 - Triggered on `push` or `pull_request`
 - Runs tests, lint, security scans
@@ -78,7 +99,7 @@ terraform apply
 ## 🧪 Testing
 - `npm run lint` – ESLint
 - `npm run test` – Unit tests for React components
-- Backend Lambdas include sample test files
+- Use Postman or `curl` to manually test APIs
 
 ---
 
@@ -91,5 +112,24 @@ By the end of this session, you'll:
 
 ---
 
-## 🧵 Next Steps
-Ready to get started? Head to the `frontend/` folder and begin with the search form component.
+## 🔧 Backend Lambdas
+
+### `searchLambda`
+- Python-based AWS Lambda function
+- Accepts POST body with:
+  - origin
+  - destination
+  - departureDate
+  - returnDate
+  - passengers
+- Returns mocked flight data (pre-defined list)
+
+### `itineraryLambda`
+- Python-based Lambda using Amazon Bedrock (Claude 3 Haiku)
+- Accepts POST body with:
+  - destination
+  - startDate
+  - endDate
+  - passengers
+  - adventurousness (0–10)
+- Uses **Bedrock Messages
