@@ -7,6 +7,11 @@ resource "aws_apigatewayv2_stage" "default" {
   api_id      = aws_apigatewayv2_api.this.id
   name        = "$default"
   auto_deploy = true
+
+  default_route_settings {
+    throttling_burst_limit = 500
+    throttling_rate_limit  = 1000
+  }
 }
 
 # Create integrations
@@ -38,4 +43,11 @@ resource "aws_lambda_permission" "invoke" {
   function_name = each.value.lambda_name
   principal     = "apigateway.amazonaws.com"
   source_arn    = "${aws_apigatewayv2_api.this.execution_arn}/*/*"
+}
+
+resource "aws_apigatewayv2_cors_configuration" "this" {
+  origin            = ["http://localhost:5173"]
+  allow_credentials = true
+  allow_headers     = ["*"]
+  allow_methods     = ["GET", "POST", "OPTIONS"]
 }
