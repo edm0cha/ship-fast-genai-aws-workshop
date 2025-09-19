@@ -10,3 +10,9 @@ variable "routes" {
     lambda_name = string
   }))
 }
+
+variable "allowed_origins" {
+  description = "Allowed CORS Origings for the API Gateway"
+  type        = list(string)
+  default     = ["http://localhost:5173"]
+}
