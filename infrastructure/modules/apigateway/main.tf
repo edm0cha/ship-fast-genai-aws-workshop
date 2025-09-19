@@ -1,6 +1,13 @@
 resource "aws_apigatewayv2_api" "this" {
   name          = var.name
   protocol_type = "HTTP"
+
+  cors_configuration {
+    allow_headers     = ["*"]
+    allow_methods     = ["POST", "OPTIONS"]
+    allow_origins     = ["http://localhost:5173"]
+    allow_credentials = false
+  }
 }
 
 resource "aws_apigatewayv2_stage" "default" {
@@ -43,11 +50,4 @@ resource "aws_lambda_permission" "invoke" {
   function_name = each.value.lambda_name
   principal     = "apigateway.amazonaws.com"
   source_arn    = "${aws_apigatewayv2_api.this.execution_arn}/*/*"
-}
-
-resource "aws_apigatewayv2_cors_configuration" "this" {
-  origin            = ["http://localhost:5173"]
-  allow_credentials = true
-  allow_headers     = ["*"]
-  allow_methods     = ["GET", "POST", "OPTIONS"]
 }

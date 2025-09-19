@@ -44,6 +44,7 @@ def generate_mock_flights(origin, destination, departure_date, return_date, pass
             "destination": destination,
             "departureTime": departure_date + "T0{}:00:00".format(8 + i),
             "arrivalTime": departure_date + "T{}:00:00".format(12 + i),
+            "returnDate": return_date + "T0{}:00:00".format(8 + i),
             "priceUSD": base_price + i * 25,
             "passengers": passengers
         }

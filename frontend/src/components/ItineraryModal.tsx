@@ -15,6 +15,7 @@ const ItineraryModal = ({ flight, onClose }: Props) => {
         setLoading(true)
         setError("")
         try {
+            console.log(flight)
             const response = await fetch(`${import.meta.env.VITE_API_URL}/generate-itinerary`, {
                 method: "POST",
                 headers: {
