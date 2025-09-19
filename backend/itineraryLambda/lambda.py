@@ -25,18 +25,23 @@ def lambda_handler(event, context):
         prompt = build_prompt(destination, start_date, end_date, passengers, adventurousness)
 
         response = bedrock.invoke_model(
-            modelId="anthropic.claude-instant-v1",  # Replace with actual model ID if needed
-            contentType="application/json",
-            accept="application/json",
-            body=json.dumps({
-                "prompt": prompt,
-                "max_tokens_to_sample": 800,
+            modelId = "anthropic.claude-3-haiku-20240307-v1:0",
+            contentType = "application/json",
+            accept = "application/json",
+            body = json.dumps({
+                "anthropic_version": "bedrock-2023-05-31",
+                "messages": [
+                    {
+                        "role": "user",
+                        "content": build_prompt(destination, start_date, end_date, passengers, adventurousness)
+                    }
+                ],
+                "max_tokens": 800,
                 "temperature": 0.7
             })
         )
-
         model_output = json.loads(response["body"].read().decode("utf-8"))
-        itinerary = extract_json_from_claude(model_output.get("completion", ""))
+        itinerary = json.loads(model_output["content"][0]["text"])
 
         return {
             "statusCode": 200,
