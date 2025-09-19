@@ -5,7 +5,7 @@ resource "aws_apigatewayv2_api" "this" {
   cors_configuration {
     allow_headers     = ["*"]
     allow_methods     = ["POST", "OPTIONS"]
-    allow_origins     = ["http://localhost:5173"]
+    allow_origins     = var.allowed_origins
     allow_credentials = false
   }
 }
