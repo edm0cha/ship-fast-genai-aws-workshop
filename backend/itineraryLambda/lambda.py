@@ -1,47 +1,55 @@
 import json
 import boto3
 import os
-from datetime import datetime, timedelta
+import logging
 
-# Example uses Anthropic Claude via Bedrock – adjust if using another model
+logger = logging.getLogger()
+logger.setLevel(logging.INFO)
+
 bedrock = boto3.client("bedrock-runtime", region_name=os.environ.get("AWS_REGION", "us-east-1"))
 
 def lambda_handler(event, context):
     try:
         body = json.loads(event.get("body", "{}"))
+        logger.info(f"Received body: {body}")
 
-        destination = body.get("destination")
-        start_date = body.get("startDate")
-        end_date = body.get("endDate")
+        # Validate input
+        required_fields = ["destination", "startDate", "endDate"]
+        for field in required_fields:
+            if field not in body:
+                return error_response(f"Missing required field: {field}", 400)
+
+        destination = body["destination"]
+        start_date = body["startDate"]
+        end_date = body["endDate"]
         passengers = body.get("passengers", 1)
         adventurousness = body.get("adventurousness", 5)
 
-        if not destination or not start_date or not end_date:
-            return {
-                "statusCode": 400,
-                "body": json.dumps({"error": "Missing required fields"})
-            }
-
         prompt = build_prompt(destination, start_date, end_date, passengers, adventurousness)
+        logger.info(f"Prompt sent to Bedrock:\n{prompt}")
 
         response = bedrock.invoke_model(
-            modelId = "anthropic.claude-3-haiku-20240307-v1:0",
-            contentType = "application/json",
-            accept = "application/json",
-            body = json.dumps({
+            modelId="anthropic.claude-3-haiku-20240307-v1:0",
+            contentType="application/json",
+            accept="application/json",
+            body=json.dumps({
                 "anthropic_version": "bedrock-2023-05-31",
                 "messages": [
                     {
                         "role": "user",
-                        "content": build_prompt(destination, start_date, end_date, passengers, adventurousness)
+                        "content": prompt
                     }
                 ],
                 "max_tokens": 800,
                 "temperature": 0.7
             })
         )
+
         model_output = json.loads(response["body"].read().decode("utf-8"))
-        itinerary = json.loads(model_output["content"][0]["text"])
+        logger.info(f"Model output: {model_output}")
+
+        raw_text = model_output["content"][0]["text"]
+        itinerary = extract_json_from_text(raw_text)
 
         return {
             "statusCode": 200,
@@ -49,9 +57,14 @@ def lambda_handler(event, context):
         }
 
     except Exception as e:
+        logger.error(f"Error: {str(e)}", exc_info=True)
+        fallback = fallback_itinerary()
         return {
             "statusCode": 500,
-            "body": json.dumps({"error": str(e)})
+            "body": json.dumps({
+                "error": str(e),
+                "fallback": fallback
+            })
         }
 
 def build_prompt(destination, start_date, end_date, passengers, adventurousness):
@@ -68,12 +81,33 @@ Create a JSON itinerary where each day includes:
 Respond ONLY with a valid JSON array. No markdown, no explanation.
 """
 
-def extract_json_from_claude(output):
+def extract_json_from_text(output):
     try:
-        # Extract JSON from Claude-style output (which may include ```json formatting)
         start = output.find("[")
         end = output.rfind("]") + 1
-        json_str = output[start:end]
-        return json.loads(json_str)
-    except:
-        return [{"error": "Unable to parse model output"}]
+        return json.loads(output[start:end])
+    except Exception as e:
+        logger.warning("Failed to extract JSON from model output.")
+        raise ValueError("Model response could not be parsed as valid JSON.")
+
+def fallback_itinerary():
+    return [
+        {
+            "day": 1,
+            "title": "Arrival and City Walk",
+            "description": "Arrive and explore the nearby landmarks.",
+            "highlights": ["City Center", "Local Market", "Historic Bridge"]
+        },
+        {
+            "day": 2,
+            "title": "Cultural Day",
+            "description": "Visit museums and engage with local culture.",
+            "highlights": ["Art Museum", "Old Town", "Traditional Café"]
+        }
+    ]
+
+def error_response(message, code=400):
+    return {
+        "statusCode": code,
+        "body": json.dumps({"error": message})
+    }
