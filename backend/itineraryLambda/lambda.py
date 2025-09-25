@@ -9,6 +9,9 @@ logger.setLevel(logging.INFO)
 
 bedrock = boto3.client("bedrock-runtime", region_name=os.environ.get("AWS_REGION", "us-east-1"))
 
+BEDROCK_TOKENS = 3600
+TRIP_DAYS = 20
+
 def lambda_handler(event, context):
     try:
         body = json.loads(event.get("body", "{}"))
@@ -26,7 +29,15 @@ def lambda_handler(event, context):
         passengers = body.get("passengers", 1)
         adventurousness = body.get("adventurousness", 5)
 
-        prompt = build_prompt(destination, start_date, end_date, passengers, adventurousness)
+        # Calculate trip days
+        fmt = "%Y-%m-%d"
+        trip_days = (datetime.strptime(end_date, fmt) - datetime.strptime(start_date, fmt)).days + 1
+        if trip_days > TRIP_DAYS:
+            return error_response("Itineraries longer than 20 days are not supported.", 400)
+        if trip_days < 1:
+            return error_response("End date must be after start date.", 400)
+
+        prompt = build_prompt(destination, start_date, end_date, passengers, adventurousness, trip_days)
         logger.info(f"Prompt sent to Bedrock:\n{prompt}")
 
         response = bedrock.invoke_model(
@@ -41,7 +52,7 @@ def lambda_handler(event, context):
                         "content": prompt
                     }
                 ],
-                "max_tokens": 3600,
+                "max_tokens": BEDROCK_TOKENS,
                 "temperature": 0.7
             })
         )
@@ -68,10 +79,7 @@ def lambda_handler(event, context):
             })
         }
 
-def build_prompt(destination, start_date, end_date, passengers, adventurousness):
-    fmt = "%Y-%m-%d"
-    trip_days = (datetime.strptime(end_date, fmt) - datetime.strptime(start_date, fmt)).days + 1
-    
+def build_prompt(destination, start_date, end_date, passengers, adventurousness, trip_days):
     return f"""
 You are a travel planner AI. A group of {passengers} passengers is traveling to {destination}
 from {start_date} to {end_date} ({trip_days} days). Their adventurousness level is {adventurousness}/10.
