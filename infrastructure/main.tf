@@ -39,7 +39,7 @@ module "apigateway" {
       lambda_name = module.itineraryLambda.function_name
     }
   }
-  allowed_origins = ["http://localhost:5173", "https://d1zr0amtvs4i0r.cloudfront.net"]
+  allowed_origins = ["*"]
 }
 
 module "static" {
