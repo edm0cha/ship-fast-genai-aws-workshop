@@ -2,6 +2,7 @@ import json
 import boto3
 import os
 import logging
+from datetime import datetime
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
@@ -40,7 +41,7 @@ def lambda_handler(event, context):
                         "content": prompt
                     }
                 ],
-                "max_tokens": 2400,
+                "max_tokens": 3600,
                 "temperature": 0.7
             })
         )
@@ -68,17 +69,20 @@ def lambda_handler(event, context):
         }
 
 def build_prompt(destination, start_date, end_date, passengers, adventurousness):
+    fmt = "%Y-%m-%d"
+    trip_days = (datetime.strptime(end_date, fmt) - datetime.strptime(start_date, fmt)).days + 1
+    
     return f"""
 You are a travel planner AI. A group of {passengers} passengers is traveling to {destination}
-from {start_date} to {end_date}. Their adventurousness level is {adventurousness}/10.
+from {start_date} to {end_date} ({trip_days} days). Their adventurousness level is {adventurousness}/10.
 
-Create a JSON itinerary where each day includes:
+Create a JSON itinerary with exactly {trip_days} days. Each day must include:
 - day (number),
 - title (short summary),
-- description (1 sentence max)
-- highlights (list of attractions or activities in 1–2 short phrases)
+- description (1 sentence max),
+- highlights (list of attractions or activities in 1–2 short phrases).
 
-Keep output concise. Respond ONLY with a valid JSON array. No markdown, no explanation.
+Keep output concise. Output ONLY a valid JSON array. No markdown, no explanation.
 """
 
 def extract_json_from_text(output):

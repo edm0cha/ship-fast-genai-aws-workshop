@@ -11,6 +11,8 @@ module "searchLambda" {
   dynamo_table_name        = module.dynamo.name
   dynamo_table_arn         = module.dynamo.arn
   endpoint_allowed_methods = ["GET"]
+  memory_size              = 512
+  timeout                  = 120
 }
 
 

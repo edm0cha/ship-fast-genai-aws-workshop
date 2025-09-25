@@ -1,3 +1,3 @@
-project_name = "ship-fast-genai-workshop"
+project_name = "serverless-edwin-genai-workshop"
 owner        = "Edwin Moedano"
 region       = "us-east-1"

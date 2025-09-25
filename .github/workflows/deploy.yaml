@@ -61,7 +61,7 @@ jobs:
             name: terraform-plan
             path: ${{ env.TF_WORKING_DIR }}/tfplan.binary
 
-        - name: Terraform Apply
-          if: github.ref == 'refs/heads/main'
-          run: terraform apply -auto-approve tfplan.binary
-          working-directory: ${{ env.TF_WORKING_DIR }}
+        # - name: Terraform Apply
+        #   if: github.ref == 'refs/heads/main'
+        #   run: terraform apply -auto-approve tfplan.binary
+        #   working-directory: ${{ env.TF_WORKING_DIR }}
